@@ -1,0 +1,36 @@
+import os
+
+genome_index = "/home/mgu/muskan/fastq/miRNA/hg38_index"
+precursor_file = "/home/mgu/muskan/fastq/miRNA/precursors_final.fa"
+hsa_file = "/home/mgu/muskan/fastq/miRNA/hsa_mature.fa"
+
+rule all:
+    input:
+        "SRR26902957_reada_collapsed.fa",
+        "SRR26902957expressed.csv"
+        
+rule mapper:
+    input:
+        r1 = "SRR26902957_pass.fastq"
+    output:
+        a = "SRR26902957_reada_collapsed.fa",
+        b = "SRR26902957_reads-refdb_collapsed.arf"
+    shell:
+        """
+        mapper.pl {input.r1} -e -h -i -j -k TGGAATTC -l 18 -m -p {genome_index} -s {output.a} -t {output.b} -v -o 12
+
+        """
+rule quantifier:
+    input:
+        collapsed_file = "SRR26902957_reada_collapsed.fa"
+    output:
+    	output_quantifier= "SRR26902957expressed.csv"
+    params:
+        precursor = precursor_file,
+        hsa = hsa_file
+    
+    shell:
+        """
+        quantifier.pl -p {params.precursor} -m {params.hsa}  -r {input.collapsed_file} -t hsa > {output.output_quantifier}
+
+        """
